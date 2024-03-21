@@ -30,7 +30,7 @@ export default class GuardBehavior extends NPCBehavior {
         super.initializeAI(owner, options);
 
         // Initialize the targetable entity the guard should try to protect and the range to the target
-        this.target = options.target
+        this.target = options.target;
         this.range = options.range;
 
         // Initialize guard statuses

@@ -6,7 +6,7 @@ import Idle from "../NPCActions/GotoAction";
 import { TargetExists } from "../NPCStatuses/TargetExists";
 import BasicFinder from "../../../GameSystems/Searching/BasicFinder";
 import { ClosestPositioned } from "../../../GameSystems/Searching/HW4Reducers";
-import { BattlerActiveFilter, BattlerGroupFilter, BattlerHealthFilter, ItemFilter, RangeFilter, VisibleItemFilter } from "../../../GameSystems/Searching/HW4Filters";
+import { AllyFilter, BattlerActiveFilter, BattlerGroupFilter, BattlerHealthFilter, EnemyFilter, ItemFilter, RangeFilter, VisibleItemFilter } from "../../../GameSystems/Searching/HW4Filters";
 import PickupItem from "../NPCActions/PickupItem";
 import UseHealthpack from "../NPCActions/UseHealthpack";
 import Healthpack from "../../../GameSystems/ItemSystem/Items/Healthpack";
@@ -48,6 +48,24 @@ export default class HealerBehavior extends NPCBehavior  {
         /* ######### Add all healer actions ######## */
 
         // TODO configure the rest of the healer actions
+        // Pick up action
+        let pickupHealthpack = new PickupItem(this, this.owner);
+        pickupHealthpack.targets = scene.getHealthpacks();
+        pickupHealthpack.targetFinder = new BasicFinder<Item>(ClosestPositioned(this.owner), VisibleItemFilter(), ItemFilter(Healthpack));
+        pickupHealthpack.addPrecondition(HealerStatuses.HPACK_EXISTS);
+        pickupHealthpack.addEffect(HealerStatuses.HAS_HPACK);
+        pickupHealthpack.cost = 1;
+        this.addState(HealerActions.PICKUP_HPACK, pickupHealthpack);
+
+        // Heal action
+        let healAlly = new UseHealthpack(this, this.owner);
+        healAlly.targets = scene.getBattlers();
+        healAlly.targetFinder = new BasicFinder<Battler>(null, AllyFilter(this.owner), BattlerHealthFilter(0, 5));
+        healAlly.addPrecondition(HealerStatuses.ALLY_EXISTS);
+        healAlly.addPrecondition(HealerStatuses.HAS_HPACK);
+        healAlly.addEffect(HealerStatuses.GOAL);
+        healAlly.cost = 5;
+        this.addState(HealerActions.USE_HPACK, healAlly);
 
         // Idle action
         let idle = new Idle(this, this.owner);
